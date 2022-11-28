@@ -1,0 +1,152 @@
+// import { Password } from "@mui/icons-material";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { loginuser } from "./features/userSlice";
+import "./CSS/login.css";
+import { auth } from "./Firebase";
+const Login = () => {
+  const [signUp, setSignUp] = useState(false);
+  const [name, setName] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const dispatch = useDispatch();
+  const register = (e) => {
+    e.preventDefault();
+
+    if (!name) {
+      return alert("name is required");
+    }
+    if (!photoURL) {
+      return alert("photoURL is required");
+    }
+    if (!email) {
+      return alert("Email is required");
+    }
+    if (!password) {
+      return alert("password is required");
+    }
+    auth
+      .createUserWithEmailAndPassword(email, password)
+      .then((userAuth) => {
+        userAuth.user
+          .updateProfile({
+            displayName: name,
+            photoURL: photoURL,
+          })
+          .then(() => {
+            dispatch(
+              loginuser({
+                email: userAuth.user.email,
+                uid: userAuth.user.uid,
+                photoURL: photoURL,
+                displayName: name,
+              })
+            );
+          });
+      })
+      .catch((error) => alert(error));
+    setName("");
+    setPhotoURL("");
+    setEmail("");
+    setPassword("");
+  };
+
+  const signIn = (e) => {
+    e.preventDefault();
+    if (!email) {
+      return alert("Email is required");
+    }
+    if (!password) {
+      return alert("password is required");
+    }
+
+    auth
+      .signInWithEmailAndPassword(email, password)
+      .then((user) => {
+        dispatch(
+          loginuser({
+            email: user.user.email,
+            uid: user.uid,
+            photoURL: user.photoURL,
+            displayName: user.displayName,
+          })
+        );
+      })
+      .catch((error) => alert(error));
+  };
+  return (
+    <>
+      <div className="loginScreen">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/LinkedIn_Logo.svg/2560px-LinkedIn_Logo.svg.png "
+          alt="Linkedin "
+        />
+        {signUp === true ? (
+          <form onSubmit={register}>
+            <input
+              type="text"
+              placeholder="Full Name (Required if Registering) "
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Profile Picture URL "
+              value={photoURL}
+              onChange={(e) => setPhotoURL(e.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="Email "
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Password "
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <input
+              type="submit"
+              value="Sign Up"
+              //  value={signUp}
+            />
+            <h4>
+              Already a member ?{" "}
+              <span onClick={(e) => setSignUp(false)}>Login here</span>
+            </h4>
+          </form>
+        ) : (
+          <form onSubmit={signIn}>
+            <input
+              type="email"
+              placeholder="Email "
+              onChange={(e) => setEmail(e.target.value)}
+              // value={email}
+            />
+            <input
+              type="password"
+              placeholder="Password "
+              onChange={(e) => setPassword(e.target.value)}
+              // value={Password}
+            />
+            <input
+              type="submit"
+              value="Sign In"
+              //  value={signUp}
+            />
+            <h4>
+              Not a member ?{" "}
+              <span onClick={(e) => setSignUp(true)}>Register here</span>
+            </h4>
+          </form>
+        )}
+      </div>
+    </>
+  );
+};
+
+export default Login;
